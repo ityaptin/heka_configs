@@ -1,0 +1,8 @@
+[elasticsearch_meter_encoder]
+type = "SandboxEncoder"
+filename = "lua_encoders/es_payload.lua"
+
+    [elasticsearch_meter_encoder.config]
+	index = "ceilometer_meter"
+	type_name = "%{resource_id}"
+	id = "%{meter_name}"

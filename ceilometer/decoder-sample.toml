@@ -1,0 +1,6 @@
+[sample_decoder]
+type = "SandboxDecoder"
+filename = "usr/share/lma_collector/files/plugins/decoders/metering.lua"
+
+[sample_decoder.config]
+    metadata_fields = 'status deleted container_format min_ram updated_at min_disk is_public size name checksum created_at disk_format protected' 

@@ -1,6 +1,6 @@
 [openstack_sample_amqp]
 type = "AMQPInput"
-url = "amqp://<user>:<password>@ip:port/"
+url = "amqp://nova:HEmtyglg59iCvx3aPO1bBJp7@10.109.1.6:5673/"
 exchange = "ceilometer"
 exchange_type = "topic"
 exchange_durability = false

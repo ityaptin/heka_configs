@@ -36,12 +36,6 @@ local sample_msg = {
     Payload = nil
 }
 
-local meter_msg = {
-    Timestamp = nil,
-    Type = "resource",
-    Fields = nil,
-}
-
 local resource_msg = {
     Timestamp = nil,
     Type = "resource",
@@ -58,50 +52,23 @@ function inject_metadata(metadata, tags)
     end
 end
 
-function inject_resource_metadata(metadata, fields)
-    for field, value in pairs(metadata) do
-        if field ~= "OS-EXT-AZ:availability_zone" then
-            if value and type(value) ~= 'table' and value ~= nil then
-                fields[field] = value
-            end
-        end
-    end
-end
+function inject_resource_to_payload(sample, payload)
 
-
-function inject_resource(sample)
-    resource_msg.Fields = {
+    local resource_data = {
+        timestamp = sample.timestamp,
         resource_id = sample.resource_id,
         source = sample.source or "",
-        last_sample_timestamp = sample.timestamp
+        metadata = sample.resource_metadata,
+        user_id = sample.user_id,
+        project_id = sample.project_id,
+        meter = {
+            [sample.counter_name] = {
+                type = sample.counter_type,
+                unit = sample.counter_unit
+            }
+        }
     }
-    local payload = {
-        resource_id = sample.resource_id,
-        source = sample.source or "",
-        last_sample_timestamp = sample.timestamp,
-        metadata = sample.resource_metadata
-    }
-
-    resource_msg.Timestamp = sample.timestamp
-    resource_msg.Payload = cjson.encode(payload)
-    utils.safe_inject_message(resource_msg)
-
-    payload = {
-        user_id = sample.user_id or "",
-        project_id = sample.project_id or "",
-        resource_id = sample.resource_id,
-        source = sample.source or "",
-        meter_name = sample.counter_name,
-        meter_type = sample.counter_type,
-        meter_unit = sample.counter_unit or "",
-        metadata = sample.resource_metadata
-    }
-    meter_msg.Fields = {
-        resource_id = sample.resource_id,
-        meter_name = sample.counter_name,
-    }
-
-    utils.safe_inject_message(meter_msg)
+    payload[sample.resource_id] = resource_data
 end
 
 
@@ -141,14 +108,19 @@ function process_message ()
     if not ok then
         return -1
     end
-    local payload = {}
+    local sample_payload = {}
+    local resource_payload = {}
     for _, sample in ipairs(message_body["payload"]) do
-        inject_sample_to_payload(sample, payload)
-        inject_resource(sample)
+        inject_sample_to_payload(sample, sample_payload)
+        resource_payload = inject_resource_to_payload(sample)
     end
-    sample_msg.Payload = cjson.encode(payload)
+    sample_msg.Payload = cjson.encode(sample_payload)
     sample_msg.Timestamp = patt.Timestamp:match(message_body.timestamp)
-    inject_message(sample_msg)
+    utils.safe_inject_message(sample_msg)
+
+    resource_msg.Payload = cjson.encode(resource_payload)
+    resource_msg.Timestamp = patt.Timestamp:match(message_body.timestamp)
+    utils.safe_inject_message(resource_msg)
 
     return 0
 end

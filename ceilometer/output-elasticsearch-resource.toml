@@ -4,9 +4,9 @@ message_matcher = "Type == 'resource'"
 encoder = "elasticsearch_resource_encoder"
 
 flush_interval = 5000
-flush_count = 10
+flush_count = 100
 
-server = "http://127.0.0.1:9200"
+server = "http://10.109.1.5:9200"
 
 use_buffering = true
 
@@ -14,3 +14,22 @@ use_buffering = true
 max_buffer_size = 1073741824
 max_file_size = 134217728
 full_action = "drop"
+
+[ceilometer_influxdb_output]
+type = "HttpOutput"
+message_matcher = "Fields[payload_type] == 'txt' && Fields[payload_name] == 'sample'"
+encoder = "influxdb_encoder"
+address = "http://10.109.1.4:8086/write?db=ceilometer&precision=ns"
+username = "lma"
+password = "lmapass"
+http_timeout = 5000
+method = "POST"
+use_buffering = true
+
+[ceilometer_influxdb_output.buffering]
+max_buffer_size = 1073741824
+max_file_size = 134217728
+full_action = "drop"
+
+ [influxdb_output.headers]
+     Content-Type = ["application/x-www-form-urlencoded"]

@@ -49,9 +49,9 @@ function process_message()
             upsert = {
                 first_sample_timestamp = resource.timestamp,
                 last_sample_timestamp = resource.timestamp,
-                project_id = resource.project_id,
-                user_id = resource.user_id,
-                source = resource.source,
+                project_id = resource.project_id or '',
+                user_id = resource.user_id or '',
+                source = resource.source or '',
                 metadata = resource.metadata,
                 meters = resource.meter
             }

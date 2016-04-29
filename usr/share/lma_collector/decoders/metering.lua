@@ -90,9 +90,10 @@ function inject_sample_to_payload(sample, payload)
         meter = sample.counter_name,
         resource_id = sample.resource_id,
         project_id = sample.project_id ,
-        user_id = sample.user_id,
+        user_id = sample.user_id or nil,
         source = sample.source
     }
+
     inject_metadata(sample.resource_metadata or {}, tags)
     sample_data["tags"] = tags
     table.insert(payload, sample_data)
@@ -112,7 +113,7 @@ function process_message ()
     local resource_payload = {}
     for _, sample in ipairs(message_body["payload"]) do
         inject_sample_to_payload(sample, sample_payload)
-        resource_payload = inject_resource_to_payload(sample)
+        inject_resource_to_payload(sample, resource_payload)
     end
     sample_msg.Payload = cjson.encode(sample_payload)
     sample_msg.Timestamp = patt.Timestamp:match(message_body.timestamp)
